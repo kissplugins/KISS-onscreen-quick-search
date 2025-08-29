@@ -54,3 +54,47 @@ Here’s a conceptual roadmap for creating this new standalone plugin.
     * **Dynamic Content Awareness**: Implement a `MutationObserver` that watches the main content area for changes. If changes are detected (e.g., an AJAX operation finishes), it should automatically re-run the search and highlight function to catch new content.
 
 By taking this approach, you can create a highly valuable, standalone utility that enhances the entire WordPress admin experience, including its use on the Smart Batch Installer page.
+
+===
+Updated Technical Addendum
+
+Goal: To create a new, generic WordPress plugin that provides a system-wide, on-page search utility, decoupled from the PQS and SBI plugins.
+
+2.1. Feasibility & Architecture
+
+Feasibility: High. The concept is highly achievable, leveraging client-side JavaScript and CSS injected into WordPress admin pages.
+
+Architecture: Modern Decoupled Plugin.
+
+🐘 PHP Backend (PSR-4): A minimal backend responsible for loading assets. A PSR-4 structure with Composer will ensure clean organization and scalability.
+
+🔷 JavaScript Frontend (TypeScript): The core logic will be written in TypeScript for type safety, maintainability, and access to modern JavaScript features, which is essential for complex DOM manipulation.
+
+2.2. Core Features & Implementation Strategy
+
+Performance-Optimized Scanning
+
+To prevent browser lag, the on-page search will be built with performance as a priority.
+
+Approach: On-Demand, Debounced DOM Traversal.
+
+Debounce Input: The search/highlight function will only fire after the user has stopped typing for ~250ms, preventing expensive operations on every keystroke.
+
+Targeted DOM Traversal: The highlighting logic will use document.createTreeWalker to iterate only through text nodes. This is a safe and efficient method that avoids breaking event listeners by modifying .innerHTML.
+
+Use requestAnimationFrame: DOM updates will be wrapped in requestAnimationFrame to ensure highlighting is smooth and doesn't cause UI stuttering.
+
+Admin Page Blacklist
+
+To avoid conflicts with complex pages like the Gutenberg editor, the plugin will include a configurable blacklist.
+
+Approach: WordPress Option + Localized Script.
+
+Backend Settings: A settings page will allow users to add page slugs (e.g., post.php, post-new.php) to a blacklist, which is stored in wp_options. The plugin will ship with a sensible default list.
+
+Frontend Check: On every admin page load, wp_localize_script will pass the blacklist and the current page's slug to the main TypeScript file.
+
+Conditional Initialization: The script's first action will be to check if the current page is on the blacklist. If it is, the script will immediately stop execution, adding virtually zero performance overhead to excluded pages.
+
+
+
